@@ -255,15 +255,15 @@ class TestPCAPipeline(unittest.TestCase):
         g = lambda: np.random.rand(100)
         a = g() * 2
         b = a + (g() - .5) / 10.
-        X = np.stack((a, b), axis=-1)
+        c = -a + (g() - .5) / 10.
+        X = np.stack((a, b, c), axis=-1)
         y = np.arange(100)
         w = np.arange(100)
 
-        self.assertTrue(all(X.mean(axis=0) > .5))
-        self.assertTrue(all(X.std(axis=0) > .1))
-
-        pcc = lambda a, b: np.corrcoef(a, b)[0][1]
-        self.assertGreater(pcc(X[:, 0], X[:, 1]), .99)
+        abspcc = lambda a, b: abs(np.corrcoef(a, b)[0][1])
+        self.assertGreater(abspcc(X[:, 0], X[:, 1]), .99)
+        self.assertGreater(abspcc(X[:, 0], X[:, 2]), .99)
+        self.assertGreater(abspcc(X[:, 1], X[:, 2]), .99)
 
         fit(pipeline, X, y, w)
 
@@ -272,13 +272,9 @@ class TestPCAPipeline(unittest.TestCase):
         self.assertTrue(all(np.abs(Xt.std(axis=0) - 1.) < 1e-10))
 
         Xt, _, _ = transform(pipeline, X, y, w)
-        self.assertLess(pcc(Xt[:, 0], Xt[:, 1]), .01)
-
-        a2 = g() * 2
-        b2 = a + (g() - .5) / 10.
-        X2 = np.stack((a, b), axis=-1)
-        Xt, _, _ = transform(pipeline, X2, y, w)
-        self.assertLess(pcc(Xt[:, 0], Xt[:, 1]), .01)
+        self.assertLess(abspcc(Xt[:, 0], Xt[:, 1]), 1e-10)
+        self.assertLess(abspcc(Xt[:, 0], Xt[:, 2]), 1e-10)
+        self.assertLess(abspcc(Xt[:, 1], Xt[:, 2]), 1e-10)
 
 
 if __name__ == '__main__':
