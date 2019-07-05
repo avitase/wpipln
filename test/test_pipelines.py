@@ -5,7 +5,7 @@ import numpy as np
 import test.steps
 from test.helper import fit, transform, mat_eq
 from wpipln.pipelines import Pipeline, BalancedPipeline
-from wpipln.steps import BaseStep
+from wpipln.steps import BaseStep, Standardize, PCA
 
 
 class TestPipeline(unittest.TestCase):
@@ -243,6 +243,42 @@ class TestBalancedPipeline(unittest.TestCase):
         self.assertEqual(n_trn[0], 5)
         self.assertEqual(n_trn[1], 2)
         self.assertEqual(n_trn[2], 3)
+
+
+class TestPCAPipeline(unittest.TestCase):
+    def test_StdPCA(self):
+        pipeline = Pipeline()
+        pipeline \
+            .add_step('std', Standardize()) \
+            .add_step('pca', PCA())
+
+        g = lambda: np.random.rand(100)
+        a = g() * 2
+        b = a + (g() - .5) / 10.
+        X = np.stack((a, b), axis=-1)
+        y = np.arange(100)
+        w = np.arange(100)
+
+        self.assertTrue(all(X.mean(axis=0) > .5))
+        self.assertTrue(all(X.std(axis=0) > .1))
+
+        pcc = lambda a, b: np.corrcoef(a, b)[0][1]
+        self.assertGreater(pcc(X[:, 0], X[:, 1]), .99)
+
+        fit(pipeline, X, y, w)
+
+        Xt, _, _ = transform(pipeline, X, y, w, last_step='std')
+        self.assertTrue(all(np.abs(Xt.mean(axis=0)) < 1e-10))
+        self.assertTrue(all(np.abs(Xt.std(axis=0) - 1.) < 1e-10))
+
+        Xt, _, _ = transform(pipeline, X, y, w)
+        self.assertLess(pcc(Xt[:, 0], Xt[:, 1]), .01)
+
+        a2 = g() * 2
+        b2 = a + (g() - .5) / 10.
+        X2 = np.stack((a, b), axis=-1)
+        Xt, _, _ = transform(pipeline, X2, y, w)
+        self.assertLess(pcc(Xt[:, 0], Xt[:, 1]), .01)
 
 
 if __name__ == '__main__':
