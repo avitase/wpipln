@@ -54,10 +54,11 @@ class PCA(BaseStep):
 
         assert n_max > 0, f'n_max is {n_max} but should be positive'
 
-        U, s, V = np.linalg.svd(X[:n_max, :])
+        _, _, V = np.linalg.svd(X[:n_max, :])
         self.V = V
 
     def transform(self, X, y, w):
         assert self.V is not None
+        assert all(np.abs(X.mean(axis=0)) < 1e-5)
 
         return X.dot(self.V.T), y, w
