@@ -12,4 +12,4 @@ def transform(pipeline, X, y, w, first_step=None, last_step=None):
 
 def mat_eq(M1, M2):
     if M1.shape != M2.shape: return False
-    return np.all(np.abs(M1 - M2) < 1e-10)
+    return np.allclose(M1, M2)
