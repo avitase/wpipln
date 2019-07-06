@@ -49,15 +49,15 @@ class Pipeline:
 
         return False
 
-    def fit_filter(self, X, y, w):
+    def filter(self, X, y, w):
         n, _ = X.shape
         n_max = self.params['n_max'] if 'n_max' in self.params else n
-        if n_max == -1 or n_max is None:
-            n_max = n
+        if n_max == -1 or n_max is None or n_max >= n:
+            return np.array([True, ] * n)
 
         assert n_max > 0, f'n_max is {n_max} but should be positive'
 
-        return X[:n_max, :], y[:n_max], w[:n_max]
+        return np.append([True, ] * n_max, [False, ] * (n - n_max))
 
     def fit(self, X, y, w, copy=True):
         assert X.shape[0] == len(y) == len(w), f'{X.shape}, {len(y)}, {len(w)}'
@@ -66,13 +66,18 @@ class Pipeline:
         y_cpy = np.array(y, copy=copy)
         w_cpy = np.array(w, copy=copy)
 
-        X_cpy, y_cpy, w_cpy = self.fit_filter(X_cpy, y_cpy, w_cpy)
+        sel = self.filter(X_cpy, y_cpy, w_cpy)
+        X_cpy, y_cpy, w_cpy = X_cpy[sel, :], y_cpy[sel], w_cpy[sel]
 
         for _, step, indices in self.steps:
             ids = np.arange(X.shape[1]) if indices == '*' else indices
 
             step.fit(X_cpy[:, ids], y_cpy, w_cpy)
+
+            sel = step.filter(X_cpy[:, ids], y_cpy, w_cpy)
+            X_cpy, y_cpy, w_cpy = X_cpy[sel, :], y_cpy[sel], w_cpy[sel]
             X_trns, y_trns, w_trns = step.transform(X_cpy[:, ids], y_cpy, w_cpy)
+
             assert X_trns.shape[1] == len(ids), f'{X_trns.shape}, {len(ids)}'
             assert X_trns.shape[0] == len(y_trns) == len(w_trns), f'{X_trns.shape}, {len(y_trns)}, {len(w_trns)}'
             assert X_trns.shape[0] == X_cpy.shape[0], f'{X_trns.shape[0]}, {X.shape[0]}'
@@ -141,17 +146,29 @@ class BalancedPipeline(Pipeline):
     def __init__(self, name='BalancedPipeline'):
         super(BalancedPipeline, self).__init__(name)
 
-    def fit_filter(self, X, y, w):
+    def _truncate(x, n):
+        sel = np.array([False, ] * len(x))
+
+        counter = 0
+        for i, v in enumerate(x):
+            if v:
+                sel[i] = True
+                counter += 1
+                if counter >= n:
+                    return sel
+
+        return sel
+
+    def filter(self, X, y, w):
+        super_sel = super(BalancedPipeline, self).filter(X, y, w)
+
+        n, _ = X.shape
+
         labels = np.unique(y)
-        n = min(np.sum(y == label) for label in labels)
+        n_min = min(np.sum(y == label) for label in labels)
 
-        X_bal = X[y == labels[0]][:n, :]
-        y_bal = y[y == labels[0]][:n]
-        w_bal = w[y == labels[0]][:n]
+        sel = np.array([False, ] * n)
+        for label in labels:
+            sel |= BalancedPipeline._truncate(y == label, n_min)
 
-        for label in labels[1:]:
-            X_bal = np.append(X_bal, X[y == label][:n, :], axis=0)
-            y_bal = np.append(y_bal, y[y == label][:n])
-            w_bal = np.append(w_bal, w[y == label][:n])
-
-        return super(BalancedPipeline, self).fit_filter(X_bal, y_bal, w_bal)
+        return super_sel & sel

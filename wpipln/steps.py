@@ -12,6 +12,11 @@ class BaseStep:
     def set_params(self, params):
         self.params = params
 
+    def filter(self, X, y, w):
+        accept_all = np.array([True, ] * len(y))
+
+        return accept_all
+
     def fit(self, X, y, w):
         pass
 

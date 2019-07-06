@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 
+import test.pipelines
 import test.steps
 from test.helper import fit, transform, mat_eq
 from wpipln.pipelines import Pipeline, BalancedPipeline
@@ -117,6 +118,38 @@ class TestPipeline(unittest.TestCase):
 
         self.assertTrue(mat_eq(X_exp1, Xt1))
         self.assertTrue(mat_eq(X_exp2, Xt2))
+
+    def test_inner_pipeline(self):
+        pipeline = test.pipelines.DiscardPipeline(-1, name='outer_pipln')
+        pipeline \
+            .add_step('inner_pipln', test.pipelines.DiscardPipeline(1, name='inner_pipln') \
+                      .add_step('counter', test.steps.LabelCounterStep(name='counter')))
+
+        X = np.array([[1, 2],
+                      [-1, 2],
+                      [2, -1],
+                      [-1, -1],
+                      [2, 2],
+                      [2, 2]])
+        y = np.array([0, 0, 0, 1, 1, 1])
+        w = np.arange(6)
+
+        pipeline.fit(X, y, w)
+        counter = pipeline.get_step('inner_pipln').get_step('counter')
+
+        self.assertTrue(0 not in counter.n_fit)
+        self.assertTrue(1 in counter.n_fit)
+        self.assertEqual(counter.n_fit[1], 2)
+
+        self.assertTrue(0 not in counter.n_transform)
+        self.assertTrue(1 in counter.n_transform)
+        self.assertEqual(counter.n_transform[1], 2)
+
+        pipeline.transform(X, y, w)
+        self.assertTrue(0 in counter.n_transform)
+        self.assertTrue(1 in counter.n_transform)
+        self.assertEqual(counter.n_transform[0], 3)
+        self.assertEqual(counter.n_transform[1], 3)
 
     def test_set_params(self):
         pipeline = Pipeline()
