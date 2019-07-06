@@ -29,19 +29,16 @@ class Standardize(BaseStep):
         self.mean = np.mean(X, axis=0)
         self.std = np.std(X, axis=0)
 
-    def transform(self, X, y, w, check=True, epsilon=1e-5):
+    def transform(self, X, y, w):
         assert self.mean is not None
         assert self.std is not None
 
-        _, m = X.shape
-        for i in range(m):
-            X[:, i] = (X[:, i] - self.mean[i]) / self.std[i]
+        n, m = X.shape
+        means = self.mean.reshape((1, m))
+        stds = self.std.reshape((1, m))
+        ones = np.ones((n, 1))
 
-        if check:
-            assert all(np.abs(X.mean(axis=0)) < epsilon)
-            assert all(np.abs(X.std(axis=0) - 1.) < epsilon)
-
-        return X, y, w
+        return (X - ones.dot(means)) / ones.dot(stds), y, w
 
 
 class PCA(BaseStep):
