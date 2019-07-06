@@ -29,7 +29,7 @@ class Standardize(BaseStep):
         self.mean = np.mean(X, axis=0)
         self.std = np.std(X, axis=0)
 
-    def transform(self, X, y, w):
+    def transform(self, X, y, w, check=True, epsilon=1e-5):
         assert self.mean is not None
         assert self.std is not None
 
@@ -37,8 +37,9 @@ class Standardize(BaseStep):
         for i in range(m):
             X[:, i] = (X[:, i] - self.mean[i]) / self.std[i]
 
-        assert all(np.abs(X.mean(axis=0)) < 1e-10)
-        assert all(np.abs(X.std(axis=0) - 1.) < 1e-10)
+        if check:
+            assert all(np.abs(X.mean(axis=0)) < epsilon)
+            assert all(np.abs(X.std(axis=0) - 1.) < epsilon)
 
         return X, y, w
 
