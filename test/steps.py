@@ -4,16 +4,16 @@ from wpipln.steps import BaseStep
 
 
 class ZeroXStep(BaseStep):
-    def __init__(self):
-        super(ZeroXStep, self).__init__('ZeroXStep')
+    def __init__(self, name='ZeroXStep'):
+        super(ZeroXStep, self).__init__(name)
 
     def transform(self, X, y, w):
         return np.zeros(X.shape), y, w
 
 
 class CenterStep(BaseStep):
-    def __init__(self):
-        super(CenterStep, self).__init__('CenterStep')
+    def __init__(self, name='CenterStep'):
+        super(CenterStep, self).__init__(name)
 
     def fit(self, X, y, w):
         self.mean = np.mean(X, axis=0)
@@ -29,8 +29,8 @@ class CenterStep(BaseStep):
 
 
 class StdScaleStep(BaseStep):
-    def __init__(self):
-        super(StdScaleStep, self).__init__('StdScaleStep')
+    def __init__(self, name='StdScaleStep'):
+        super(StdScaleStep, self).__init__(name)
 
     def fit(self, X, y, w):
         self.std = np.std(X, axis=0)
@@ -46,8 +46,8 @@ class StdScaleStep(BaseStep):
 
 
 class ScaleStep(BaseStep):
-    def __init__(self):
-        super(ScaleStep, self).__init__('ScaleStep')
+    def __init__(self, name='ScaleStep'):
+        super(ScaleStep, self).__init__(name)
 
     def transform(self, X, y, w):
         scale_factor = self.params['factor'] if 'factor' in self.params else 1.
@@ -56,8 +56,8 @@ class ScaleStep(BaseStep):
 
 
 class LabelCounterStep(BaseStep):
-    def __init__(self):
-        super(LabelCounterStep, self).__init__('LabelCounterStep')
+    def __init__(self, name='LabelCounterStep'):
+        super(LabelCounterStep, self).__init__(name)
         self.n_fit = dict()
         self.n_transform = dict()
 
