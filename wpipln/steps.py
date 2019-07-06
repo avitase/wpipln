@@ -37,6 +37,9 @@ class Standardize(BaseStep):
         for i in range(m):
             X[:, i] = (X[:, i] - self.mean[i]) / self.std[i]
 
+        assert all(np.abs(X.mean(axis=0)) < 1e-10)
+        assert all(np.abs(X.std(axis=0) - 1.) < 1e-10)
+
         return X, y, w
 
 
