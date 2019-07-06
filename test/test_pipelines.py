@@ -246,6 +246,34 @@ class TestBalancedPipeline(unittest.TestCase):
 
 
 class TestPCAPipeline(unittest.TestCase):
+    def test_standardize_step(self):
+        pipeline = Pipeline()
+        pipeline.add_step('std', Standardize())
+
+        a = np.arange(7).astype(float)
+        b = (np.arange(7) * 2).astype(float)
+        X = np.stack((a, b), axis=-1)
+        y = np.arange(7)
+        w = np.arange(7)
+
+        pipeline.fit(X, y, w)
+
+        mean = X.mean(axis=0)
+        std = X.std(axis=0)
+        self.assertAlmostEqual(mean[0], 3)
+        self.assertAlmostEqual(mean[1], 6)
+        self.assertAlmostEqual(std[0], 2)
+        self.assertAlmostEqual(std[1], 4)
+
+        Xt, _, _ = pipeline.transform(X, y, w)
+
+        mean = Xt.mean(axis=0)
+        std = Xt.std(axis=0)
+        self.assertAlmostEqual(mean[0], 0)
+        self.assertAlmostEqual(mean[1], 0)
+        self.assertAlmostEqual(std[0], 1)
+        self.assertAlmostEqual(std[1], 1)
+
     def test_StdPCA(self):
         pipeline = Pipeline()
         pipeline \
