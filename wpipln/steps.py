@@ -50,6 +50,7 @@ class PCA(BaseStep):
     def __init__(self, name='PCA', n_max=None):
         super(PCA, self).__init__(name)
         self.params['n_max'] = n_max
+        self.params['check_mean'] = True
         self.V = None
 
     def fit(self, X, y, w):
@@ -65,6 +66,8 @@ class PCA(BaseStep):
 
     def transform(self, X, y, w):
         assert self.V is not None
-        assert all(np.abs(X.mean(axis=0)) < 1e-5)
+
+        if 'check_mean' in self.params and self.params['check_mean']:
+            assert all(np.abs(X.mean(axis=0)) < 1e-5), X.mean(axis=0)
 
         return X.dot(self.V.T), y, w
