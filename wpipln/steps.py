@@ -38,11 +38,6 @@ class Standardize(BaseStep):
         vstd = self.std.reshape((1, m))
         ones = np.ones((n, 1))
 
-        a = ones.dot(vmean)
-        b = ones.dot(vstd)
-        Y = (X - a)
-        Z = Y / b
-
         return (X - ones.dot(vmean)) / ones.dot(vstd), y, w
 
 
