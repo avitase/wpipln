@@ -34,11 +34,11 @@ class Standardize(BaseStep):
         assert self.std is not None
 
         n, m = X.shape
-        means = self.mean.reshape((1, m))
-        stds = self.std.reshape((1, m))
+        vmean = self.mean.reshape((1, m))
+        vstd = self.std.reshape((1, m))
         ones = np.ones((n, 1))
 
-        return (X - ones.dot(means)) / ones.dot(stds), y, w
+        return (X - ones.dot(vmean)) / ones.dot(vstd), y, w
 
 
 class PCA(BaseStep):
