@@ -68,6 +68,7 @@ class PCA(BaseStep):
         assert self.V is not None
 
         if 'check_mean' in self.params and self.params['check_mean']:
-            assert all(np.abs(X.mean(axis=0)) < 1e-5), X.mean(axis=0)
+            threshold = self.params['mean_threshold'] if 'mean_threshold' in self.params else 1e-5
+            assert all(np.abs(X.mean(axis=0)) < threshold), X.mean(axis=0)
 
         return X.dot(self.V.T), y, w
