@@ -56,12 +56,21 @@ class Standardize(BaseStep):
 
 
 class PCA(BaseStep):
-    def __init__(self, name='PCA'):
+    def __init__(self, name='PCA', ignore=None):
         super(PCA, self).__init__(name)
         self.R = None
+        self.params['ignore'] = ignore
+        self.ignore = ignore
 
     def fit(self, X, y, w):
-        cov = np.cov(X.T, aweights=w)
+        to_list = lambda x: x if hasattr(x, '__iter__') else [x, ]
+        ignore = to_list(self.params['ignore']) if 'ignore' in self.params else []
+
+        sel = np.array([True, ] * len(y))
+        for label in ignore:
+            sel &= (y != label)
+
+        cov = np.cov(X[sel, :].T, aweights=w[sel])
         _, _, RT = np.linalg.svd(cov)
         self.R = RT.T
 
