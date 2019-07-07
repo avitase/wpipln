@@ -305,7 +305,7 @@ class TestPCAPipeline(unittest.TestCase):
 
         self.assertTrue(mat_eq(X, Xt))
 
-    def test_PCA_2d(self):
+    def test_PCA(self):
         pipeline = Pipeline()
         pipeline.add_step('pca', PCA())
 
@@ -325,6 +325,28 @@ class TestPCAPipeline(unittest.TestCase):
 
         Xt, _, _ = transform(pipeline, X, y, w)
         cov = np.cov(Xt.T)
+        self.assertAlmostEqual(cov[0, 0], 5.)
+        self.assertAlmostEqual(cov[1, 0], 0.)
+        self.assertAlmostEqual(cov[0, 1], 0.)
+        self.assertAlmostEqual(cov[1, 1], 0.)
+
+    def test_PCA_ignore(self):
+        pipeline = Pipeline()
+        pipeline.add_step('pca', PCA(ignore=[1, 2]))
+
+        X = np.array([[1., 2., 3., 4., 5.], [2., 4., 6., 8., 10.]]).T
+        w = np.array([1., 1., 1., 1., 1.])
+        y = np.array([0, 0, 0, 1, 2])
+
+        fit(pipeline, X, y, w)
+
+        pca = pipeline.get_step('pca')
+        R = pca.R
+        self.assertEqual(R.shape, (2, 2))
+        self.assertTrue(np.allclose(R.dot(R.T), np.identity(R.shape[0])))
+
+        Xt, _, _ = transform(pipeline, X, y, w)
+        cov = np.cov(Xt[(y != 1) & (y != 2)].T)
         self.assertAlmostEqual(cov[0, 0], 5.)
         self.assertAlmostEqual(cov[1, 0], 0.)
         self.assertAlmostEqual(cov[0, 1], 0.)
