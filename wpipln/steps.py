@@ -30,9 +30,18 @@ class Standardize(BaseStep):
         self.mean = None
         self.std = None
 
+    def avg_and_std(X, w):
+        avg = np.average(X, axis=0, weights=w)
+
+        n, m = X.shape
+        c = X - np.ones((n, 1)).dot(avg.reshape((1, m)))
+
+        var = np.average(c ** 2, axis=0, weights=w) * n / (n - 1)
+
+        return avg, np.sqrt(var)
+
     def fit(self, X, y, w):
-        self.mean = np.mean(X, axis=0)
-        self.std = np.std(X, axis=0)
+        self.mean, self.std = Standardize.avg_and_std(X, w)
 
     def transform(self, X, y, w):
         assert self.mean is not None
@@ -47,28 +56,16 @@ class Standardize(BaseStep):
 
 
 class PCA(BaseStep):
-    def __init__(self, name='PCA', n_max=None):
+    def __init__(self, name='PCA'):
         super(PCA, self).__init__(name)
-        self.params['n_max'] = n_max
-        self.params['check_mean'] = True
-        self.V = None
+        self.R = None
 
     def fit(self, X, y, w):
-        n, _ = X.shape
-        n_max = self.params['n_max'] if 'n_max' in self.params else n
-        if n_max == -1 or n_max is None:
-            n_max = n
-
-        assert n_max > 0, f'n_max is {n_max} but should be positive'
-
-        _, _, V = np.linalg.svd(X[:n_max, :])
-        self.V = V
+        cov = np.cov(X.T, aweights=w)
+        _, _, RT = np.linalg.svd(cov)
+        self.R = RT.T
 
     def transform(self, X, y, w):
-        assert self.V is not None
+        assert self.R is not None
 
-        if 'check_mean' in self.params and self.params['check_mean']:
-            threshold = self.params['mean_threshold'] if 'mean_threshold' in self.params else 1e-5
-            assert all(np.abs(X.mean(axis=0)) < threshold), X.mean(axis=0)
-
-        return X.dot(self.V.T), y, w
+        return X.dot(self.R), y, w

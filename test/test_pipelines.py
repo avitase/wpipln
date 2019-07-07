@@ -283,29 +283,52 @@ class TestPCAPipeline(unittest.TestCase):
         pipeline = Pipeline()
         pipeline.add_step('std', Standardize())
 
-        a = np.arange(7).astype(float)
-        b = (np.arange(7) * 2).astype(float)
+        a = np.array([1., 2., 3., 4.])
+        b = np.array([2., 4., 6., 8.])
+        w = np.array([2., 3., 3., 4.])
+
         X = np.stack((a, b), axis=-1)
-        y = np.arange(7)
-        w = np.arange(7)
+        y = np.zeros(4)
 
         pipeline.fit(X, y, w)
 
-        mean = X.mean(axis=0)
-        std = X.std(axis=0)
-        self.assertAlmostEqual(mean[0], 3)
-        self.assertAlmostEqual(mean[1], 6)
-        self.assertAlmostEqual(std[0], 2)
-        self.assertAlmostEqual(std[1], 4)
+        step = pipeline.get_step('std')
+        self.assertAlmostEqual(step.mean[0], 2.75)
+        self.assertAlmostEqual(step.mean[1], 5.5)
+        self.assertAlmostEqual(step.std[0], np.sqrt(14.25) / 3.)
+        self.assertAlmostEqual(step.std[1], np.sqrt(57.) / 3.)
 
         Xt, _, _ = pipeline.transform(X, y, w)
 
-        mean = Xt.mean(axis=0)
-        std = Xt.std(axis=0)
-        self.assertAlmostEqual(mean[0], 0)
-        self.assertAlmostEqual(mean[1], 0)
-        self.assertAlmostEqual(std[0], 1)
-        self.assertAlmostEqual(std[1], 1)
+        X = np.array([(np.array([1., 2., 3., 4.]) - 2.75) / (np.sqrt(14.25) / 3.),
+                      (np.array([2., 4., 6., 8.]) - 5.5) / (np.sqrt(57.) / 3.)]).T
+
+        self.assertTrue(mat_eq(X, Xt))
+
+    def test_PCA_2d(self):
+        pipeline = Pipeline()
+        pipeline.add_step('pca', PCA())
+
+        X = np.array([[1., 2., 3.], [2., 4., 6.]]).T
+        w = np.array([1., 1., 1.])
+        y = np.zeros(3)
+
+        abspcc = lambda a, b: abs(np.corrcoef(a, b)[0][1])
+        self.assertGreater(abspcc(X[:, 0], X[:, 1]), .99)
+
+        fit(pipeline, X, y, w)
+
+        pca = pipeline.get_step('pca')
+        R = pca.R
+        self.assertEqual(R.shape, (2, 2))
+        self.assertTrue(np.allclose(R.dot(R.T), np.identity(R.shape[0])))
+
+        Xt, _, _ = transform(pipeline, X, y, w)
+        cov = np.cov(Xt.T)
+        self.assertAlmostEqual(cov[0, 0], 5.)
+        self.assertAlmostEqual(cov[1, 0], 0.)
+        self.assertAlmostEqual(cov[0, 1], 0.)
+        self.assertAlmostEqual(cov[1, 1], 0.)
 
     def test_StdPCA(self):
         pipeline = Pipeline()
@@ -313,29 +336,28 @@ class TestPCAPipeline(unittest.TestCase):
             .add_step('std', Standardize()) \
             .add_step('pca', PCA())
 
-        g = lambda: np.random.rand(100)
+        n = 100
+        g = lambda: np.random.rand(n)
         a = g() * 2
-        b = a + (g() - .5) / 10.
-        c = -a + (g() - .5) / 10.
+        b = a + (g() - .5) / 2.
+        c = -a + (g() - .5) / 2.
         X = np.stack((a, b, c), axis=-1)
-        y = np.arange(100)
-        w = np.arange(100)
+        y = np.zeros(n)
+        w = np.ones(n)
 
         abspcc = lambda a, b: abs(np.corrcoef(a, b)[0][1])
-        self.assertGreater(abspcc(X[:, 0], X[:, 1]), .99)
-        self.assertGreater(abspcc(X[:, 0], X[:, 2]), .99)
-        self.assertGreater(abspcc(X[:, 1], X[:, 2]), .99)
+        self.assertGreater(abspcc(X[:, 0], X[:, 1]), .9)
+        self.assertGreater(abspcc(X[:, 0], X[:, 2]), .9)
+        self.assertGreater(abspcc(X[:, 1], X[:, 2]), .9)
 
         fit(pipeline, X, y, w)
-
-        Xt, _, _ = transform(pipeline, X, y, w, last_step='std')
-        self.assertTrue(all(np.abs(Xt.mean(axis=0)) < 1e-10))
-        self.assertTrue(all(np.abs(Xt.std(axis=0) - 1.) < 1e-10))
-
         Xt, _, _ = transform(pipeline, X, y, w)
-        self.assertLess(abspcc(Xt[:, 0], Xt[:, 1]), 1e-10)
-        self.assertLess(abspcc(Xt[:, 0], Xt[:, 2]), 1e-10)
-        self.assertLess(abspcc(Xt[:, 1], Xt[:, 2]), 1e-10)
+
+        cov = np.cov(Xt.T)
+        row_sums = cov.sum(axis=0)
+        ncov = cov / row_sums[:, np.newaxis]
+
+        self.assertTrue(np.allclose(ncov, np.identity(ncov.shape[0])))
 
 
 if __name__ == '__main__':
