@@ -88,13 +88,18 @@ class Pipeline:
 
         self.is_fitted = True
 
-    def transform(self, X, y, w, copy=True, first_step=None, last_step=None):
+    def transform(self, X, y=None, w=None, copy=True, first_step=None, last_step=None):
         assert self.is_fitted, 'transform can only be called after wpipln was fitted'
-        assert X.shape[0] == len(y) == len(w), f'{X.shape}, {len(y)}, {len(w)}'
+
+        if y is not None:
+            assert X.shape[0] == len(y), f'{X.shape}, {len(y)}'
+
+        if w is not None:
+            assert X.shape[0] == len(w), f'{X.shape}, {len(w)}'
 
         X_cpy = np.array(X, copy=copy)
-        y_cpy = np.array(y, copy=copy)
-        w_cpy = np.array(w, copy=copy)
+        y_cpy = np.array(y, copy=copy) if y is not None else None
+        w_cpy = np.array(w, copy=copy) if w is not None else None
 
         split = lambda x: (x, []) if isinstance(x, str) else (x[0], x[1:])
         step_number = {name: n for n, (name, _, _) in enumerate(self.steps)}
@@ -132,8 +137,13 @@ class Pipeline:
 
             X_trns, y_trns, w_trns = trns
             assert X_trns.shape[1] == len(ids), f'{X_trns.shape}, {len(ids)}'
-            assert X_trns.shape[0] == len(y_trns) == len(w_trns), f'{X_trns.shape}, {len(y_trns)}, {len(w_trns)}'
             assert X_trns.shape[0] == X_cpy.shape[0], f'{X_trns.shape[0]}, {X.shape[0]}'
+
+            if y_trns is not None:
+                assert X_trns.shape[0] == len(y_trns), f'{X_trns.shape}, {len(y_trns)}'
+
+            if w_trns is not None:
+                assert X_trns.shape[0] == len(w_trns), f'{X_trns.shape}, {len(w_trns)}'
 
             X_cpy[:, ids] = X_trns
             y_cpy = y_trns
