@@ -49,15 +49,30 @@ class Pipeline:
 
         return False
 
+    @staticmethod
+    def balanced_truncate(X, y, w, n_max):
+        n = len(y)
+        sel = np.array([False, ] * n)
+
+        labels = np.unique(y)
+        for label in labels:
+            idx = (y == label)
+            v = np.zeros(n)
+            v[idx] = np.arange(np.sum(idx)) + 1
+            sel |= (v > 0) & (v <= n_max)
+
+        return sel
+
     def filter(self, X, y, w):
         n, _ = X.shape
+
         n_max = self.params['n_max'] if 'n_max' in self.params else n
         if n_max == -1 or n_max is None or n_max >= n:
             return np.array([True, ] * n)
 
         assert n_max > 0, f'n_max is {n_max} but should be positive'
 
-        return np.append([True, ] * n_max, [False, ] * (n - n_max))
+        return Pipeline.balanced_truncate(X, y, w, n_max)
 
     def fit(self, X, y, w, copy=True):
         assert X.shape[0] == len(y) == len(w), f'{X.shape}, {len(y)}, {len(w)}'
@@ -156,29 +171,8 @@ class BalancedPipeline(Pipeline):
     def __init__(self, name='BalancedPipeline'):
         super(BalancedPipeline, self).__init__(name)
 
-    def _truncate(x, n):
-        sel = np.array([False, ] * len(x))
-
-        counter = 0
-        for i, v in enumerate(x):
-            if v:
-                sel[i] = True
-                counter += 1
-                if counter >= n:
-                    return sel
-
-        return sel
-
     def filter(self, X, y, w):
-        super_sel = super(BalancedPipeline, self).filter(X, y, w)
-
-        n, _ = X.shape
-
         labels = np.unique(y)
-        n_min = min(np.sum(y == label) for label in labels)
+        n = min(np.sum(y == label) for label in labels)
 
-        sel = np.array([False, ] * n)
-        for label in labels:
-            sel |= BalancedPipeline._truncate(y == label, n_min)
-
-        return super_sel & sel
+        return Pipeline.balanced_truncate(X, y, w, n)

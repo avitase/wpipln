@@ -256,10 +256,10 @@ class TestBalancedPipeline(unittest.TestCase):
         self.assertEqual(n_trn2[1], 2)
         self.assertEqual(n_trn2[2], 3)
 
-    def test_dropout(self):
+    def test_balanced_dropout(self):
         pipeline = BalancedPipeline('wpipln')
         pipeline.add_step('counter', test.steps.LabelCounterStep())
-        pipeline.set_params({'n_max': 5})
+        pipeline.set_params({'n_max': 2})
 
         X = np.random.rand(50).reshape((10, 5))
         y = np.array([0, 2, 2, 0, 1, 0, 1, 0, 2, 0])
@@ -271,7 +271,7 @@ class TestBalancedPipeline(unittest.TestCase):
         n_fit = pipeline.get_step('counter').n_fit
         n_trn = pipeline.get_step('counter').n_transform
 
-        self.assertEqual(sum(n_fit.values()), 5)
+        self.assertEqual(sum(n_fit.values()), 6)
 
         self.assertEqual(n_trn[0], 5)
         self.assertEqual(n_trn[1], 2)
