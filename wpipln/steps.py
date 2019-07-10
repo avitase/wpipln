@@ -69,4 +69,4 @@ class PCA(BaseStep):
     def transform(self, X, y, w):
         assert self.R is not None
 
-        return X.dot(self.R), y, w
+        return X @ self.R, y, w
