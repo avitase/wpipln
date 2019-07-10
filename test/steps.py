@@ -19,13 +19,7 @@ class CenterStep(BaseStep):
         self.mean = np.mean(X, axis=0)
 
     def transform(self, X, y, w):
-        _, m = X.shape
-        assert len(self.mean) == m
-
-        for i in range(m):
-            X[:, i] -= self.mean[i]
-
-        return X, y, w
+        return X - self.mean[np.newaxis, :], y, w
 
 
 class StdScaleStep(BaseStep):
@@ -36,13 +30,7 @@ class StdScaleStep(BaseStep):
         self.std = np.std(X, axis=0)
 
     def transform(self, X, y, w):
-        _, m = X.shape
-        assert len(self.std) == m
-
-        for i in range(m):
-            X[:, i] /= self.std[i]
-
-        return X, y, w
+        return X / self.std[np.newaxis, :], y, w
 
 
 class ScaleStep(BaseStep):

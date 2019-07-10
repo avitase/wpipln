@@ -31,12 +31,9 @@ class Standardize(BaseStep):
         self.std = None
 
     def avg_and_std(X, w):
+        n, _ = X.shape
         avg = np.average(X, axis=0, weights=w)
-
-        n, m = X.shape
-        c = X - np.ones((n, 1)).dot(avg.reshape((1, m)))
-
-        var = np.average(c ** 2, axis=0, weights=w) * n / (n - 1)
+        var = np.average((X - avg[np.newaxis, :]) ** 2, axis=0, weights=w) * n / (n - 1)
 
         return avg, np.sqrt(var)
 
@@ -47,12 +44,7 @@ class Standardize(BaseStep):
         assert self.mean is not None
         assert self.std is not None
 
-        n, m = X.shape
-        vmean = self.mean.reshape((1, m))
-        vstd = self.std.reshape((1, m))
-        ones = np.ones((n, 1))
-
-        return (X - ones.dot(vmean)) / ones.dot(vstd), y, w
+        return (X - self.mean[np.newaxis, :]) / self.std[np.newaxis, :], y, w
 
 
 class PCA(BaseStep):
