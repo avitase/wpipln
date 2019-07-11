@@ -42,24 +42,19 @@ class Pipeline:
         self.params[key] = param
 
     def set_params(self, params):
-        for key, param in params:
-            self.set_param(key, param)
+        for key in params:
+            self.set_param(key, params[key])
 
     def set_step_param(self, name, key, param):
+        assert name in [name for (name, _, _) in self.steps]
+
         for step_name, step, _ in self.steps:
             if step_name == name:
                 step.set_param(key, param)
-                return True
-
-        return False
 
     def set_step_params(self, name, params):
-        for step_name, step, _ in self.steps:
-            if step_name == name:
-                step.set_params(params)
-                return True
-
-        return False
+        for key in params:
+            self.set_step_param(name, key, params[key])
 
     @staticmethod
     def balanced_truncate(X, y, w, n_max):
