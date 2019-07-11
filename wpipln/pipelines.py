@@ -38,8 +38,20 @@ class Pipeline:
 
         return str_repr
 
+    def set_param(self, key, param):
+        self.params[key] = param
+
     def set_params(self, params):
-        self.params = params
+        for key, param in params:
+            self.set_param(key, param)
+
+    def set_step_param(self, name, key, param):
+        for step_name, step, _ in self.steps:
+            if step_name == name:
+                step.set_param(key, param)
+                return True
+
+        return False
 
     def set_step_params(self, name, params):
         for step_name, step, _ in self.steps:

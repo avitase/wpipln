@@ -259,7 +259,7 @@ class TestBalancedPipeline(unittest.TestCase):
     def test_balanced_dropout(self):
         pipeline = BalancedPipeline('wpipln')
         pipeline.add_step('counter', test.steps.LabelCounterStep())
-        pipeline.set_params({'n_max': 2})
+        pipeline.set_param('n_max', 2)
 
         X = np.random.rand(50).reshape((10, 5))
         y = np.array([0, 2, 2, 0, 1, 0, 1, 0, 2, 0])
