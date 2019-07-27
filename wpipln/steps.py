@@ -91,3 +91,36 @@ class PCA(BaseStep):
         else:
             return Y, y, w
 
+
+class BinaryOverlapPCA(PCA):
+    def __init__(self, name='BinaryPCA', bin_edges=np.linspace(-5, 5, 101)):
+        super(BinaryOverlapPCA, self).__init__(name=name, ignore=None, standardize=True)
+        self.bin_edges = bin_edges
+
+    @staticmethod
+    def overlap(x1, w1, x2, w2, bin_edges):
+        h1, _ = np.histogram(x1 * w1, bin_edges)
+        h2, _ = np.histogram(x2 * w2, bin_edges)
+        dx = (bin_edges - np.roll(bin_edges, 1))[1:]
+
+        return sum(h1 * h2 * dx)
+
+    def fit(self, X, y, w):
+        labels = np.unique(y)
+        assert 0 < len(labels) <= 2
+
+        super(BinaryOverlapPCA, self).fit(X, y, w)
+        assert self.R is not None
+
+        sel = (y == labels[0])
+        X1 = X[sel, :] @ self.R
+        w1 = w[sel]
+        w2 = w[~sel]
+        X2 = X[~sel, :] @ self.R
+
+        assert X1.shape == X2.shape
+        _, n = X1.shape
+        overlaps = [self.overlap(x1=X1[:, i], w1=w1, x2=X2[:, i], w2=w2, bin_edges=self.bin_edges) for i in range(n)]
+
+        idx = np.argsort(overlaps)
+        self.R = self.R[idx, :]
