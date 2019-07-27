@@ -53,11 +53,14 @@ class Standardize(BaseStep):
 
 
 class PCA(BaseStep):
-    def __init__(self, name='PCA', ignore=None):
+    def __init__(self, name='PCA', ignore=None, standardize=True):
         super(PCA, self).__init__(name)
         self.R = None
         self.params['ignore'] = ignore
+        self.params['standardize'] = standardize
         self.ignore = ignore
+        self.mean = None
+        self.std = None
 
     def fit(self, X, y, w):
         to_list = lambda x: x if hasattr(x, '__iter__') else [x, ]
@@ -71,7 +74,20 @@ class PCA(BaseStep):
         _, _, RT = np.linalg.svd(cov)
         self.R = RT.T
 
+        self.mean, self.std = Standardize.avg_and_std(X @ self.R, w)
+
     def transform(self, X, y, w):
         assert self.R is not None
+        assert X.shape[1] == self.R.shape[0]
+        assert self.mean is not None
+        assert self.std is not None
+        assert len(self.mean) == X.shape[1]
+        assert len(self.std) == X.shape[1]
 
-        return X @ self.R, y, w
+        Y = X @ self.R
+
+        if self.params['standardize']:
+            return (Y - self.mean[np.newaxis, :]) / self.std[np.newaxis, :], y, w
+        else:
+            return Y, y, w
+

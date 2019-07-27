@@ -307,7 +307,7 @@ class TestPCAPipeline(unittest.TestCase):
 
     def test_PCA(self):
         pipeline = Pipeline()
-        pipeline.add_step('pca', PCA())
+        pipeline.add_step('pca', PCA(standardize=False))
 
         X = np.array([[1., 2., 3.], [2., 4., 6.]]).T
         w = np.array([1., 1., 1.])
@@ -332,7 +332,7 @@ class TestPCAPipeline(unittest.TestCase):
 
     def test_PCA_ignore(self):
         pipeline = Pipeline()
-        pipeline.add_step('pca', PCA(ignore=[1, 2]))
+        pipeline.add_step('pca', PCA(ignore=[1, 2], standardize=False))
 
         X = np.array([[1., 2., 3., 4., 5.], [2., 4., 6., 8., 10.]]).T
         w = np.array([1., 1., 1., 1., 1.])
@@ -380,6 +380,48 @@ class TestPCAPipeline(unittest.TestCase):
         ncov = cov / row_sums[:, np.newaxis]
 
         self.assertTrue(np.allclose(ncov, np.identity(ncov.shape[0])))
+
+    def test_PCA_standardize(self):
+        pipeline = Pipeline()
+        pipeline.add_step('pca', PCA(standardize=True))
+
+        X = np.array([[1., 2., 3., 4., 5.], [2., 4., 6., 8., 10.]]).T
+        w = np.array([1., 1., 1., 1., 1.])
+        y = np.array([0, 0, 0, 1, 2])
+
+        fit(pipeline, X, y, w)
+        Xt, _, _ = transform(pipeline, X, y, w)
+        for mean, std in zip(Xt.mean(axis=0), Xt.std(axis=0, ddof=1)):
+            self.assertAlmostEqual(mean, 0.)
+            self.assertAlmostEqual(std, 1.)
+
+    def test_PCA_weighted_standardize(self):
+        pipeline = Pipeline()
+        pipeline.add_step('pca', PCA(standardize=False))
+
+        X1 = np.array([[1., 2., 3., 4., 5.], [2., 4., 6., 8., 10.]]).T
+        w1 = np.array([0., 1., 2., 1., 1.])
+        y1 = np.array([0, 0, 0, 1, 2])
+
+        X2 = np.array([[2., 3., 3., 4., 5.], [4., 6., 6., 8., 10.]]).T
+        w2 = np.array([1., 1., 1., 1., 1.])
+        y2 = np.array([0, 0, 0, 1, 2])
+
+        fit(pipeline, X1, y1, w1)
+        Xt1, _, _ = transform(pipeline, X1, y1, w1)
+        means1 = Xt1.mean(axis=0)
+        stds1 = Xt1.std(axis=0, ddof=1)
+
+        fit(pipeline, X2, y2, w2)
+        Xt2, _, _ = transform(pipeline, X2, y2, w2)
+        means2 = Xt1.mean(axis=0)
+        stds2 = Xt1.std(axis=0, ddof=1)
+
+        for mean1, mean2 in zip(means1, means2):
+            self.assertAlmostEqual(mean1, mean2)
+
+        for std1, std2 in zip(stds1, stds2):
+            self.assertAlmostEqual(std1, std2)
 
 
 if __name__ == '__main__':
