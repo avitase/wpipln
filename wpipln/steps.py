@@ -34,6 +34,7 @@ class Standardize(BaseStep):
         self.mean = None
         self.std = None
 
+    @staticmethod
     def avg_and_std(X, w):
         n, _ = X.shape
         avg = np.average(X, axis=0, weights=w)
