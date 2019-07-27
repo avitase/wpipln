@@ -45,11 +45,11 @@ class Pipeline:
         for key in params:
             self.set_param(key, params[key])
 
-    def set_step_param(self, name, key, param):
-        assert name in [name for (name, _, _) in self.steps]
+    def set_step_param(self, step_name, key, param):
+        assert step_name in [name for (name, _, _) in self.steps]
 
-        for step_name, step, _ in self.steps:
-            if step_name == name:
+        for name, step, _ in self.steps:
+            if name == step_name:
                 step.set_param(key, param)
 
     def set_step_params(self, name, params):
