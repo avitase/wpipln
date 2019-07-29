@@ -109,7 +109,7 @@ class Pipeline:
         self.is_fitted = True
 
     def transform(self, X, y=None, w=None, copy=True, first_step=None, last_step=None):
-        assert self.is_fitted, 'transform can only be called after wpipln was fitted'
+        assert self.is_fitted, 'transform can only be called after pipeline was fitted'
 
         if y is not None:
             assert X.shape[0] == len(y), f'{X.shape}, {len(y)}'
