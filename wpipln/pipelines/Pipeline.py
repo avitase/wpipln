@@ -94,8 +94,6 @@ class Pipeline:
 
             step.fit(X_cpy[:, ids], y_cpy, w_cpy)
 
-            sel = step.filter(X_cpy[:, ids], y_cpy, w_cpy)
-            X_cpy, y_cpy, w_cpy = X_cpy[sel, :], y_cpy[sel], w_cpy[sel]
             X_trns, y_trns, w_trns = step.transform(X_cpy[:, ids], y_cpy, w_cpy)
 
             assert X_trns.shape[1] == len(ids), f'{X_trns.shape}, {len(ids)}'
