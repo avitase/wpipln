@@ -99,11 +99,11 @@ class BinaryOverlapPCA(PCA):
 
     @staticmethod
     def overlap(x1, w1, x2, w2, bin_edges):
-        h1, _ = np.histogram(x1 * w1, bin_edges)
-        h2, _ = np.histogram(x2 * w2, bin_edges)
+        h1, _ = np.histogram(x1 * w1, bin_edges, density=True)
+        h2, _ = np.histogram(x2 * w2, bin_edges, density=True)
         dx = (bin_edges - np.roll(bin_edges, 1))[1:]
 
-        return sum(h1 * h2 * dx)
+        return sum(np.sqrt(h1 * h2) * dx)
 
     def fit(self, X, y, w):
         labels = np.unique(y)
@@ -123,4 +123,4 @@ class BinaryOverlapPCA(PCA):
         overlaps = [self.overlap(x1=X1[:, i], w1=w1, x2=X2[:, i], w2=w2, bin_edges=self.bin_edges) for i in range(n)]
 
         idx = np.argsort(overlaps)
-        self.R = self.R[idx, :]
+        self.R = self.R[:, idx]

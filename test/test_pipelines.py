@@ -451,8 +451,8 @@ class TestBinaryOverlapPCA(unittest.TestCase):
         overlap2 = BinaryOverlapPCA.overlap(x1=Xt[sel1, 1], w1=w[sel1], x2=Xt[sel2, 1], w2=w[sel2],
                                             bin_edges=np.linspace(-5, 5, 101))
 
-        self.assertGreater(overlap1, .9)
-        self.assertLess(overlap2, .1)
+        self.assertLess(overlap1, .1)
+        self.assertGreater(overlap2, .99)
 
 
 if __name__ == '__main__':
