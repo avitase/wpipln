@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import wasserstein_distance
 
 
 class BaseStep:
@@ -92,24 +93,19 @@ class PCA(BaseStep):
             return Y, y, w
 
 
-class BinaryOverlapPCA(PCA):
-    def __init__(self, name='BinaryPCA', bin_edges=np.linspace(-5, 5, 101)):
-        super(BinaryOverlapPCA, self).__init__(name=name, ignore=None, standardize=True)
-        self.bin_edges = bin_edges
+class BinaryWPCA(PCA):
+    def __init__(self, name='BinaryWPCA'):
+        super(BinaryWPCA, self).__init__(name=name, ignore=None, standardize=True)
 
     @staticmethod
-    def overlap(x1, w1, x2, w2, bin_edges):
-        h1, _ = np.histogram(x1 * w1, bin_edges, density=True)
-        h2, _ = np.histogram(x2 * w2, bin_edges, density=True)
-        dx = (bin_edges - np.roll(bin_edges, 1))[1:]
-
-        return sum(np.sqrt(h1 * h2) * dx)
+    def distance(x1, w1, x2, w2):
+        return wasserstein_distance(u_values=x1, v_values=x2, u_weights=w1, v_weights=w2)
 
     def fit(self, X, y, w):
         labels = np.unique(y)
         assert 0 < len(labels) <= 2
 
-        super(BinaryOverlapPCA, self).fit(X, y, w)
+        super(BinaryWPCA, self).fit(X, y, w)
         assert self.R is not None
 
         sel = (y == labels[0])
@@ -120,7 +116,7 @@ class BinaryOverlapPCA(PCA):
 
         assert X1.shape == X2.shape
         _, n = X1.shape
-        overlaps = [self.overlap(x1=X1[:, i], w1=w1, x2=X2[:, i], w2=w2, bin_edges=self.bin_edges) for i in range(n)]
+        distances = [self.distance(x1=X1[:, i], w1=w1, x2=X2[:, i], w2=w2) for i in range(n)]
 
-        idx = np.argsort(overlaps)
+        idx = np.flip(np.argsort(distances))
         self.R = self.R[:, idx]

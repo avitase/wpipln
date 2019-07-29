@@ -1,12 +1,13 @@
 import unittest
 
 import numpy as np
+import scipy
 
 import test.pipelines
 import test.steps
 from test.helper import fit, transform, mat_eq
 from wpipln.pipelines import Pipeline, BalancedPipeline
-from wpipln.steps import BaseStep, Standardize, PCA, BinaryOverlapPCA
+from wpipln.steps import BaseStep, Standardize, PCA, BinaryWPCA
 
 
 class TestPipeline(unittest.TestCase):
@@ -424,10 +425,10 @@ class TestPCAPipeline(unittest.TestCase):
             self.assertAlmostEqual(std1, std2)
 
 
-class TestBinaryOverlapPCA(unittest.TestCase):
+class TestBinaryWPCA(unittest.TestCase):
     def test_ordering(self):
         pipeline = Pipeline()
-        pipeline.add_step('std', BinaryOverlapPCA())
+        pipeline.add_step('wpca', BinaryWPCA())
 
         mean1 = [.5, -.5]
         mean2 = [-.5, .5]
@@ -446,13 +447,16 @@ class TestBinaryOverlapPCA(unittest.TestCase):
 
         sel1 = (y == 0)
         sel2 = (y == 1)
-        overlap1 = BinaryOverlapPCA.overlap(x1=Xt[sel1, 0], w1=w[sel1], x2=Xt[sel2, 0], w2=w[sel2],
-                                            bin_edges=np.linspace(-5, 5, 101))
-        overlap2 = BinaryOverlapPCA.overlap(x1=Xt[sel1, 1], w1=w[sel1], x2=Xt[sel2, 1], w2=w[sel2],
-                                            bin_edges=np.linspace(-5, 5, 101))
 
-        self.assertLess(overlap1, .1)
-        self.assertGreater(overlap2, .99)
+        distance = lambda x1, w1, x2, w2: scipy.stats.wasserstein_distance(u_values=x1,
+                                                                           v_values=x2,
+                                                                           u_weights=w1,
+                                                                           v_weights=w2)
+
+        dist1 = distance(x1=X[sel1, 0], w1=w[sel1], x2=Xt[sel2, 0], w2=w[sel2])
+        dist2 = distance(x1=X[sel1, 1], w1=w[sel1], x2=Xt[sel2, 1], w2=w[sel2])
+
+        self.assertLess(dist1, dist2)
 
 
 if __name__ == '__main__':
