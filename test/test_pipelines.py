@@ -442,7 +442,7 @@ class TestBinaryOverlapPCA(unittest.TestCase):
 
         Xt, _, _ = pipeline.transform(X, y, w)
         is_diag = lambda X: np.allclose(X - np.diag(np.diagonal(X)), np.zeros(X.shape))
-        self.assertTrue(is_diag(np.cov(Xt)))
+        self.assertTrue(is_diag(np.cov(Xt.T)))
 
         sel1 = (y == 0)
         sel2 = (y == 1)
