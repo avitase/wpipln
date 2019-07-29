@@ -7,7 +7,7 @@ import test.pipelines
 import test.steps
 from test.helper import fit, transform, mat_eq
 from wpipln.pipelines import Pipeline, BalancedPipeline
-from wpipln.steps import BaseStep, Standardize, PCA, BinaryWPCA
+from wpipln.steps import BaseStep, Standardizer, PCA, BinaryWPCA
 
 
 class TestPipeline(unittest.TestCase):
@@ -282,7 +282,7 @@ class TestBalancedPipeline(unittest.TestCase):
 class TestPCAPipeline(unittest.TestCase):
     def test_standardize_step(self):
         pipeline = Pipeline()
-        pipeline.add_step('std', Standardize())
+        pipeline.add_step('std', Standardizer())
 
         a = np.array([1., 2., 3., 4.])
         b = np.array([2., 4., 6., 8.])
@@ -356,7 +356,7 @@ class TestPCAPipeline(unittest.TestCase):
     def test_StdPCA(self):
         pipeline = Pipeline()
         pipeline \
-            .add_step('std', Standardize()) \
+            .add_step('std', Standardizer()) \
             .add_step('pca', PCA())
 
         n = 100

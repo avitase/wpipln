@@ -172,14 +172,3 @@ class Pipeline:
             w_cpy = w_trns
 
         return X_cpy, y_cpy, w_cpy
-
-
-class BalancedPipeline(Pipeline):
-    def __init__(self, name='BalancedPipeline'):
-        super(BalancedPipeline, self).__init__(name)
-
-    def filter(self, X, y, w):
-        labels = np.unique(y)
-        n = min(np.sum(y == label) for label in labels)
-
-        return Pipeline.balanced_truncate(X, y, w, n)
