@@ -18,7 +18,6 @@ class Pipeline:
 
     def add_step(self, name, step, indices='*'):
         self.steps.append((name, step, indices))
-
         return self
 
     def has_step(self, name):
@@ -35,7 +34,6 @@ class Pipeline:
         str_repr = f'{self.name}, steps: {{'
         str_repr += ', '.join(f'(({step}), indices={indices})' for name, step, indices in self.steps)
         str_repr += '}'
-
         return str_repr
 
     def set_param(self, key, param):
