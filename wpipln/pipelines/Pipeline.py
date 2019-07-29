@@ -2,11 +2,13 @@ import numpy as np
 
 
 class Pipeline:
-    def __init__(self, name='Pipeline', steps=[]):
+    def __init__(self, name='Pipeline', steps=None):
         self.name = name
         self.params = dict()
         self.is_fitted = False
 
+        if steps is None:
+            steps = []
         self.steps = []
         names = []
         for name, step, indices in steps:
