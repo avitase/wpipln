@@ -1,3 +1,4 @@
+```
 ┌───────┐                    ┌──────────┐
 │X, y, w│                    │X', y', w'│          
 └───────┘                    └──────────┘
@@ -39,3 +40,4 @@ Flow of (X, y, w):  ║, ═
  Selection branch:  S╠
      Merge branch:  M╠
    Set parameters:  ──»─
+```
