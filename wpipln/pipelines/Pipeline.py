@@ -34,7 +34,7 @@ class Pipeline:
 
     def __str__(self):
         str_repr = f'{self.name}, steps: {{'
-        str_repr += ', '.join(f'(({step}), indices={indices})' for name, step, indices in self.steps)
+        str_repr += ', '.join(f'(\'{name}\' ({step}), indices={indices})' for name, step, indices in self.steps)
         str_repr += '}'
         return str_repr
 
