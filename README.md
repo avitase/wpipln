@@ -53,7 +53,7 @@ Flow of (X, y, w):  ║, ═
 
 ## The Pipeline Step Interface
 
-A pipeline step has to implement a `fit(X, y, w)` and a `transform(X, y, w)` member function. The former use `(X, y, w)` for setting properties (via side effect), whereas the latter is expected to be pure and transforms `(X, y, w)`. Further, pipelines offer the possibility to pass arguments to its individual steps. In order to work, pipeline steps are required to implement ` set_param(key, param)` and `set_params(self, params)`.
+A pipeline step has to implement a `fit(X, y, w)` and a `transform(X, y, w)` member function. The former use `(X, y, w)` for setting properties (via side effect), whereas the latter is expected to be pure and transforms `(X, y, w)`. Further, pipelines offer the possibility to pass arguments to their individual steps. In order to work, pipeline steps are required to implement ` set_param(key, param)` and `set_params(self, params)`.
 A good starting point for writing a custom pipeline step is to extend [BaseStep](wpipln/steps/BaseStep.py).
 
 ### Examples:
