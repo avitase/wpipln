@@ -130,15 +130,9 @@ class Pipeline:
 
             if refit:
                 step.fit(Xf[:, ids], yf, wf, **kwargs)
-            X_trns, y_trns, w_trns = step.transform(X_cpy[:, ids], y_cpy, w_cpy, **kwargs)
+                Xf[:, ids], yf, wf = step.transform(Xf[:, ids], yf, wf, **kwargs)
 
-            assert X_trns.shape[1] == len(ids), f'{X_trns.shape}, {len(ids)}'
-            assert X_trns.shape[0] == len(y_trns) == len(w_trns), f'{X_trns.shape}, {len(y_trns)}, {len(w_trns)}'
-            assert X_trns.shape[0] == X_cpy.shape[0], f'{X_trns.shape[0]}, {X.shape[0]}'
-
-            X_cpy[:, ids] = X_trns
-            y_cpy = y_trns
-            w_cpy = w_trns
+            X_cpy[:, ids], y_cpy, w_cpy = step.transform(X_cpy[:, ids], y_cpy, w_cpy, **kwargs)
 
         if refit:
             self.is_fitted = True
