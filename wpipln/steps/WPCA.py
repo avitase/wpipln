@@ -30,3 +30,4 @@ class BinaryWPCA(PCA):
 
         idx = np.flip(np.argsort(distances))
         self.R = self.R[:, idx]
+        self.is_fitted = True

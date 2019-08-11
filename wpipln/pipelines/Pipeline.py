@@ -128,7 +128,7 @@ class Pipeline:
             elif is_last and last_tail:
                 kwargs['last_step'] = last_tail
 
-            if refit:
+            if refit or not step.is_fitted:
                 step.fit(Xf[:, ids], yf, wf, **kwargs)
                 Xf[:, ids], yf, wf = step.transform(Xf[:, ids], yf, wf, **kwargs)
 

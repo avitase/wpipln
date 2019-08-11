@@ -10,6 +10,7 @@ class Overwrite(BaseStep):
         self.value = value
 
     def transform(self, X, y, w):
+        assert self.is_fitted
         return np.ones_like(X) * self.value, y, w
 
 
@@ -20,8 +21,10 @@ class Center(BaseStep):
 
     def fit(self, X, y, w):
         self.mean = X.mean(axis=0)
+        self.is_fitted = True
 
     def transform(self, X, y, w):
+        assert self.is_fitted
         return X - self.mean[np.newaxis, :], y, w
 
 
@@ -31,6 +34,7 @@ class Scale(BaseStep):
         self.params['factor'] = factor
 
     def transform(self, X, y, w):
+        assert self.is_fitted
         return X * self.params['factor'], y, w
 
 

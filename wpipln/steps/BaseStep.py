@@ -2,6 +2,7 @@ class BaseStep:
     def __init__(self, name):
         self.name = name
         self.params = dict()
+        self.is_fitted = False
 
     def __str__(self):
         return f'Pipeline step \'{self.name}\''
@@ -14,7 +15,7 @@ class BaseStep:
             self.set_param(key, params[key])
 
     def fit(self, X, y, w):
-        pass
+        self.is_fitted = True
 
     def transform(self, X, y, w):
         return X, y, w

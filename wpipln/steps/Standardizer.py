@@ -13,8 +13,10 @@ class Standardizer(BaseStep):
     def fit(self, X, y, w):
         self.mean = average(X, w)
         self.std = standard_deviation(X, w)
+        self.is_fitted = True
 
     def transform(self, X, y, w):
+        assert self.is_fitted
         assert self.mean is not None
         assert self.std is not None
 
