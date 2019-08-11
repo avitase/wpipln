@@ -101,8 +101,8 @@ class TestPipeline(unittest.TestCase):
 
     def test_inner_pipeline(self):
         pipeline = SkipPipeline(skip_rows=[2, 3], name='outer_pipln')
-        pipeline.add_step('inner_pipln', SkipPipeline(skip_rows=[2, ], name='inner_pipln') \
-                          .add_step('center', Center()))
+        pipeline.add_step('inner_pipln',
+                          SkipPipeline(skip_rows=[2, ], name='inner_pipln').add_step('center', Center()))
 
         X = np.array([[0, 1],
                       [2, 3],
