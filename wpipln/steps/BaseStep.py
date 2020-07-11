@@ -1,7 +1,7 @@
 class BaseStep:
     def __init__(self, name):
         self.name = name
-        self.params = dict()
+        self.params = {}
         self.is_fitted = False
 
     def __str__(self):
