@@ -4,7 +4,7 @@ import numpy as np
 class Pipeline:
     def __init__(self, name='Pipeline', steps=None):
         self.name = name
-        self.params = dict()
+        self.params = {}
         self.is_fitted = False
 
         if steps is None:
@@ -122,7 +122,7 @@ class Pipeline:
 
             ids = np.arange(X.shape[1]) if indices == '*' else indices
 
-            kwargs = dict()
+            kwargs = {}
             if is_first and first_tail:
                 kwargs['first_step'] = first_tail
             elif is_last and last_tail:
